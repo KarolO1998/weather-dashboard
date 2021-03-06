@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Weather Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!--Title-->
+    <div
+      class="jumbotron container-fluid mt-2 text-center p-2"
+      style="
+        background-color: #000000;
+        color: white;
+        text-decoration: underline;
+      "
+    >
+      <h1><strong>Weather Dashboard</strong></h1>
+    </div>
+    <div class="container">
+      <!--Row for searching a city-->
+      <div class="row">
+        <div class="col-sm-4 bg-light border border-dark m-3 rounded">
+          <h4 class="pt-1"><strong>Search for a City:</strong></h4>
+          <!--Search-->
+          <div class="input-group mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="search-city"
+              aria-label="City Search"
+              aria-describedby="search-button"
+            />
+            <div class="input-group-append">
+              <button class="btn bg-dark" id="search-button">
+                <i class="fa fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <!--search city history-->
+          <button class="btn btn-light mb-3" type="button" id="clear-history">
+            Clear history
+          </button>
+          <ul class="list-group"></ul>
+        </div>
+        <!--current weather-->
+        <div class="col-8">
+          <div class="row col-sm-12 border border-dark m-3 rounded">
+            <div class="col-sm-12" id="current-weather">
+              <h3
+                class="city-name mb-1 mt-2 bolder align-middle"
+                id="current-city"
+              ></h3>
+              <p>Temperature:<span class="current" id="temperature"></span></p>
+              <p>Humidity:<span class="current" id="humidity"></span></p>
+              <p>Wind Speed:<span class="current" id="wind-speed"></span></p>
+              <p>
+                UV index:<span
+                  class="current bg-light rounded py-2 px-2 text-black d-flex"
+                  id="uv-index"
+                ></span>
+              </p>
+            </div>
+          </div>
+          <!--future data-->
+          <div class="col-sm-12" id="future-weather">
+            <h3>5-Day Forecast:</h3>
+            <div class="row text-light">
+              <div
+                class="col-sm-2 bg-dark forecast text-white ml-2 mb-3 p-2 mt-2 rounded"
+              >
+                <p id="fDate0"></p>
+                <p id="fImg0"></p>
+                <p>Temp:<span id="fTemp0"></span></p>
+                <p>Humidity:<span id="fHumidity0"></span></p>
+              </div>
+              <div
+                class="col-sm-2 bg-dark forecast text-white ml-2 mb-3 p-2 mt-2 rounded"
+              >
+                <p id="fDate1"></p>
+                <p id="fImg1"></p>
+                <p>Temp:<span id="fTemp1"></span></p>
+                <p>Humidity:<span id="fHumidity1"></span></p>
+              </div>
+              <div
+                class="col-sm-2 bg-dark forecast text-white ml-2 mb-3 p-2 mt-2 rounded"
+              >
+                <p id="fDate2"></p>
+                <p id="fImg2"></p>
+                <p>Temp:<span id="fTemp2"></span></p>
+                <p>Humidity:<span id="fHumidity2"></span></p>
+              </div>
+              <div
+                class="col-sm-2 bg-dark forecast text-white ml-2 mb-3 p-2 mt-2 rounded"
+              >
+                <p id="fDate3"></p>
+                <p id="fImg3"></p>
+                <p>Temp:<span id="fTemp3"></span></p>
+                <p>Humidity:<span id="fHumidity3"></span></p>
+              </div>
+              <div
+                class="col-sm-2 bg-dark forecast text-white ml-2 mb-3 p-2 mt-2 rounded"
+              >
+                <p id="fDate4"></p>
+                <p id="fImg4"></p>
+                <p>Temp:<span id="fTemp4"></span></p>
+                <p>Humidity:<span id="fHumidity4"></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br></br>
+    <footer>
+        <div
+      class="jumbotron container-fluid mt-2 p-2"
+      style="
+        background-color: #000000;
+        width: auto;
+        height: 50px;">
+    </div>
+    </footer>
+    <!--jQuery JS-->
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.bundle.min.js"></script>
+    <!--Jvascript-->
+    <script>
+      //variable declaration
+      var city = "";
+      var searchCity = $("#search-city");
+      var searchButton = $("#search-button");
+      var clearButton = $("#clear-history");
+      var currentCity = $("#current-city");
+      var currentTemperature = $("#temperature");
+      var currentHumidty = $("#humidity");
+      var currentWSpeed = $("#wind-speed");
+      var currentUvindex = $("#uv-index");
+      var sCity = [];
+
+      function find(c) {
+        for (var i = 0; i < sCity.length; i++) {
+          if (c.toUpperCase() === sCity[i]) {
+            return -1;
+          }
+        }
+        return 1;
+      }
+      //the API key
+      var APIKey = "d03398d1662c560a56953d19852ce8a8";
+      // displays the curent and future weather
+      function displayWeather(event) {
+        event.preventDefault();
+        if (searchCity.val().trim() !== "") {
+          city = searchCity.val().trim();
+          currentWeather(city);
+        }
+      }
+      //created the AJAX call
+      function currentWeather(city) {
+        //getting datat from the server
+        var queryURL =
+          "https://api.openweathermap.org/data/2.5/weather?q=" +
+          city +
+          "&APPID=" +
+          APIKey;
+        $.ajax({
+          url: queryURL,
+          method: "GET",
+        }).then(function (response) {
+          console.log(response);
+          var weathericon = response.weather[0].icon;
+          var iconurl =
+            "https://openweathermap.org/img/wn/" + weathericon + "@2x.png";
+          var date = new Date(response.dt * 1000).toLocaleDateString();
+          //display for name of city and concanatig the date and icon.
+          $(currentCity).html(
+            response.name + "(" + date + ")" + "<img src=" + iconurl + ">"
+          );
+          //display the current temperature.
+          //convert the temp to fahrenheit
+
+          var tempF = (response.main.temp - 273.15) * 1.8 + 32;
+          $(currentTemperature).html(tempF.toFixed(2) + "&#8457");
+          //display the Humidity
+          $(currentHumidty).html(response.main.humidity + "%");
+          //display Wind speed and convert to MPH
+          var ws = response.wind.speed;
+          var windsmph = (ws * 2.237).toFixed(1);
+          $(currentWSpeed).html(windsmph + "MPH");
+          //display UVIndex.
+          UVIndex(response.coord.lon, response.coord.lat);
+          forecast(response.id);
+          if (response.cod == 200) {
+            sCity = JSON.parse(localStorage.getItem("cityname"));
+            console.log(sCity);
+            if (sCity == null) {
+              sCity = [];
+              sCity.push(city.toUpperCase());
+              localStorage.setItem("cityname", JSON.stringify(sCity));
+              addToList(city);
+            } else {
+              if (find(city) > 0) {
+                sCity.push(city.toUpperCase());
+                localStorage.setItem("cityname", JSON.stringify(sCity));
+                addToList(city);
+              }
+            }
+          }
+        });
+      }
+      //function returns the UVIindex response.
+      function UVIndex(ln, lt) {
+        //lets build the url for uvindex.
+        var uvqURL =
+          "https://api.openweathermap.org/data/2.5/uvi?appid=" +
+          APIKey +
+          "&lat=" +
+          lt +
+          "&lon=" +
+          ln;
+        $.ajax({
+          url: uvqURL,
+          method: "GET",
+        }).then(function (response) {
+          $(currentUvindex).html(response.value);
+        });
+      }
+
+      // Here we display the 5 days forecast for the current city.
+      function forecast(cityid) {
+        var dayover = false;
+        var queryforcastURL =
+          "https://api.openweathermap.org/data/2.5/forecast?id=" +
+          cityid +
+          "&appid=" +
+          APIKey;
+        $.ajax({
+          url: queryforcastURL,
+          method: "GET",
+        }).then(function (response) {
+          for (i = 0; i < 5; i++) {
+            var date = new Date(
+              response.list[(i + 1) * 8 - 1].dt * 1000
+            ).toLocaleDateString();
+            var iconcode = response.list[(i + 1) * 8 - 1].weather[0].icon;
+            var iconurl =
+              "https://openweathermap.org/img/wn/" + iconcode + ".png";
+            var tempK = response.list[(i + 1) * 8 - 1].main.temp;
+            var tempF = ((tempK - 273.5) * 1.8 + 32).toFixed(2);
+            var humidity = response.list[(i + 1) * 8 - 1].main.humidity;
+
+            $("#fDate" + i).html(date);
+            $("#fImg" + i).html("<img src=" + iconurl + ">");
+            $("#fTemp" + i).html(tempF + "&#8457");
+            $("#fHumidity" + i).html(humidity + "%");
+          }
+        });
+      }
+
+      //add the passed city on the search history
+      function addToList(c) {
+        var listEl = $("<li>" + c.toUpperCase() + "</li>");
+        $(listEl).attr("class", "list-group-item");
+        $(listEl).attr("data-value", c.toUpperCase());
+        $(".list-group").append(listEl);
+      }
+      // display the past search again when the list group item is clicked in search history
+      function invokePastSearch(event) {
+        var liEl = event.target;
+        if (event.target.matches("li")) {
+          city = liEl.textContent.trim();
+          currentWeather(city);
+        }
+      }
+
+      // render function
+      function loadlastCity() {
+        $("ul").empty();
+        var sCity = JSON.parse(localStorage.getItem("cityname"));
+        if (sCity !== null) {
+          sCity = JSON.parse(localStorage.getItem("cityname"));
+          for (i = 0; i < sCity.length; i++) {
+            addToList(sCity[i]);
+          }
+          city = sCity[i - 1];
+          currentWeather(city);
+        }
+      }
+      //Clear the search history from the page
+      function clearHistory(event) {
+        event.preventDefault();
+        sCity = [];
+        localStorage.removeItem("cityname");
+        document.location.reload();
+      }
+      //Click Handlers
+      $("#search-button").on("click", displayWeather);
+      $(document).on("click", invokePastSearch);
+      $(window).on("load", loadlastCity);
+      $("#clear-history").on("click", clearHistory);
+    </script>
+  </body>
+</html>
